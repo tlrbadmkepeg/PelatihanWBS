@@ -1299,17 +1299,15 @@ function showResult(score) {
     const certNum = state.certConfig.prefix + String(Math.floor(Math.random()*9000)+1000);
     const record = {
       nama: state.nama, unit: state.unit, email: state.email,
-      score, date: new Date().toLocaleDateString('id-ID'), dateStr: certDateStr, certNum,
+      score, date: new Date().toLocaleDateString('id-ID'), certNum,
       status: 'pass'
     };
     state.certRecords.push(record);
     saveToStorage();
     const certDateStr = new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
-    setTimeout(async () => {
-      await document.fonts.ready;
-      await drawCertificate('cert-canvas', state.nama, state.unit, score, certNum, certDateStr);
-      await drawCertificatePage2('cert-canvas-p2', state.nama, state.unit, certDateStr);
-      sendCertEmail(state.nama, state.unit, state.email, score, certNum, certDateStr);
+    setTimeout(() => {
+      drawCertificate('cert-canvas', state.nama, state.unit, score, certNum, certDateStr);
+      drawCertificatePage2('cert-canvas-p2', state.nama, state.unit, certDateStr);
     }, 300);
   }
 
@@ -1376,7 +1374,6 @@ async function drawCertificate(canvasId, nama, unit, score, certNum, tanggal) {
   const gold = '#C9A227';
   const cream = '#FAF7F0';
 
-  await document.fonts.ready;
   const [logoImg, ttdImg] = await Promise.all([loadImage(LOGO_IMG_SRC), loadImage(TTD_IMG_SRC)]);
 
   // Background
@@ -1488,7 +1485,6 @@ async function drawCertificatePage2(canvasId, nama, unit, tanggal) {
   const gold = '#C9A227';
   const cream = '#FAF7F0';
 
-  await document.fonts.ready;
   const [logoImg] = await Promise.all([loadImage(LOGO_IMG_SRC)]);
 
   // Cream background
@@ -1555,27 +1551,21 @@ async function drawCertificatePage2(canvasId, nama, unit, tanggal) {
   });
 }
 
-async function downloadCert() {
-  await document.fonts.ready;
-  const lastRec = state.certRecords[state.certRecords.length-1];
-  const certNum = lastRec?.certNum || '';
-  const certDateStr = lastRec?.dateStr || lastRec?.date || new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-  // Re-draw to make sure canvas is fresh before export
-  await drawCertificate('cert-canvas', state.nama, state.unit, state.quizScore, certNum, certDateStr);
+function downloadCert() {
   const canvas1 = document.getElementById('cert-canvas');
   const link1 = document.createElement('a');
   link1.download = `Sertifikat_Halaman1_${state.nama.replace(/\s/g,'_')}.png`;
   link1.href = canvas1.toDataURL('image/png');
   link1.click();
-  await new Promise(r => setTimeout(r, 600));
-  await drawCertificatePage2('cert-canvas-p2', state.nama, state.unit, certDateStr);
-  const canvas2 = document.getElementById('cert-canvas-p2');
-  if(canvas2) {
-    const link2 = document.createElement('a');
-    link2.download = `Sertifikat_Halaman2_Materi_${state.nama.replace(/\s/g,'_')}.png`;
-    link2.href = canvas2.toDataURL('image/png');
-    link2.click();
-  }
+  setTimeout(() => {
+    const canvas2 = document.getElementById('cert-canvas-p2');
+    if(canvas2) {
+      const link2 = document.createElement('a');
+      link2.download = `Sertifikat_Halaman2_Materi_${state.nama.replace(/\s/g,'_')}.png`;
+      link2.href = canvas2.toDataURL('image/png');
+      link2.click();
+    }
+  }, 600);
 }
 
 // =============================================
